@@ -5,7 +5,7 @@
  *          dành cho STM32F103 sử dụng SPL. Driver cho phép cấu hình,
  *          đổi mode, đổi chiều, refresh và đọc thông tin version của port/pin.
  *
- * @version 1.0
+ * @version 1.1
  * @date    2024-06-19
  * @author  HALA Academy
  **********************************************************/
@@ -14,23 +14,30 @@
  *           Includes
  * =============================== */
 #include "Port.h"
-#include "cfg_port.h"
 #include "stm32f10x_rcc.h"
 #include <stddef.h>
 
 /* ===============================
  *     Static/Internal Variables
  * =============================== */
-static uint8_t Port_Initialized = 0; /* Biến trạng thái xác định Port đã init chưa */
+static uint8_t Port_Initialized = 0;                    /* Biến trạng thái xác định Port đã init chưa */
+static const Port_ConfigType *Port_CurrentConfig = NULL; //con trỏ static lưu cấu hình từ Port_Init 
 
+/**********************************************************
+ * Hàm duyệt mảng cấu hình thông qua con trỏ static Port_CurrentConfig, 
+ * không trỏ trực tiếp vào config.
+ **********************************************************/
 static const Port_PinConfigType *Port_FindPinConfig(Port_PinType channel)
 {
     uint16_t i;
 
-    for (i = 0; i < PortCfg_PinsCount; i++)
+    if (Port_CurrentConfig == NULL)
+        return NULL;
+
+    for (i = 0; i < Port_CurrentConfig->PinCount; i++)
     {
-        if (PortCfg_Pins[i].Channel == channel)
-            return &PortCfg_Pins[i];
+        if (Port_CurrentConfig->PinConfigs[i].Channel == channel)
+            return &Port_CurrentConfig->PinConfigs[i];
     }
 
     return NULL;
@@ -44,6 +51,7 @@ static const Port_PinConfigType *Port_FindPinConfig(Port_PinType channel)
  * @brief Cấu hình 1 pin GPIO dựa trên thông số AUTOSAR
  * @param[in] pinCfg Con trỏ đến cấu trúc cấu hình pin
  **********************************************************/
+
 static void Port_ApplyPinConfig(const Port_PinConfigType *pinCfg)
 {
     GPIO_InitTypeDef GPIO_InitStruct;
@@ -130,7 +138,11 @@ static void Port_ApplyPinConfig(const Port_PinConfigType *pinCfg)
 
 /**********************************************************
  * @brief Khởi tạo toàn bộ các Port/Pin theo cấu hình
- * @details Hàm này sẽ gọi cấu hình từng pin theo bảng config.
+ * @details Hàm này lưu con trỏ ConfigPtr vào biến static nội bộ
+ *          Port_CurrentConfig, sau đó gọi cấu hình từng pin.
+ *          Các hàm khác trong module sẽ truy xuất cấu hình
+ *          thông qua Port_CurrentConfig mà không cần biết
+ *          tầng config bên ngoài.
  * @param[in] ConfigPtr Con trỏ đến cấu hình Port
  **********************************************************/
 void Port_Init(const Port_ConfigType *ConfigPtr)
@@ -138,13 +150,15 @@ void Port_Init(const Port_ConfigType *ConfigPtr)
     if (ConfigPtr == NULL || ConfigPtr->PinConfigs == NULL)
         return;
 
+    /* Lưu cấu hình vào biến static nội bộ */
+    Port_CurrentConfig = ConfigPtr;
+
     for (uint16_t i = 0; i < ConfigPtr->PinCount; i++)
     {
         Port_ApplyPinConfig(&ConfigPtr->PinConfigs[i]);
     }
     Port_Initialized = 1;
 }
-//khai báo port confictype static const của 1 port init type const Port_ConfigType *ConfigPtrA = *configPtr
 
 /**********************************************************
  * @brief Đổi chiều một chân Port (nếu cho phép runtime)
@@ -171,17 +185,20 @@ void Port_SetPinDirection(Port_PinType Pin, Port_PinDirectionType Direction)
 
 /**********************************************************
  * @brief Làm tươi lại chiều các pin không cho đổi runtime
- * @details Chỉ các pin cấu hình DirectionChangeable=0 sẽ được làm tươi lại chiều về giá trị config
+ * @details Chỉ các pin cấu hình DirectionChangeable=0 sẽ được
+ *          làm tươi lại chiều về giá trị config.
+ *          Truy xuất qua con trỏ static Port_CurrentConfig.
  **********************************************************/
 void Port_RefreshPortDirection(void)
 {
-    if (!Port_Initialized)
+    if (!Port_Initialized || Port_CurrentConfig == NULL)
         return;
-    for (uint16_t i = 0; i < PortCfg_PinsCount; i++)
+
+    for (uint16_t i = 0; i < Port_CurrentConfig->PinCount; i++)
     {
-        if (!PortCfg_Pins[i].DirectionChangeable)
+        if (!Port_CurrentConfig->PinConfigs[i].DirectionChangeable)
         {
-            Port_ApplyPinConfig(&PortCfg_Pins[i]);
+            Port_ApplyPinConfig(&Port_CurrentConfig->PinConfigs[i]);
         }
     }
 }
