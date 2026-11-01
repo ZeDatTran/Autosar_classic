@@ -1,0 +1,61 @@
+{
+  "configurations": [
+    {
+      "name": "windows-gcc-x64",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/platform/include",
+        "${workspaceFolder}/platform/spl/inc",
+        "${workspaceFolder}/platform/bsp/cmsis",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/Autosar/mcal/Port",
+        "${workspaceFolder}/Autosar/mcal/Dio",
+        "${workspaceFolder}/Autosar/config"
+      ],
+      "defines": [
+        "STM32F10X_MD",
+        "USE_STDPERIPH_DRIVER",
+        "HSE_VALUE=8000000",
+        "RTE_DEVICE_STDPERIPH_RCC",
+        "RTE_DEVICE_STDPERIPH_GPIO"
+      ],
+      "compilerPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/arm-none-eabi-gcc.exe",
+      "compilerArgs": [
+        "-mcpu=cortex-m3",
+        "-mthumb"
+      ],
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++14",
+      "intelliSenseMode": "windows-gcc-x64"
+    },
+    {
+      "name": "STM32-ARM-GCC",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/platform/include",
+        "${workspaceFolder}/platform/spl/inc",
+        "${workspaceFolder}/platform/bsp/cmsis",
+        "${workspaceFolder}/src",
+        "${workspaceFolder}/Autosar/mcal/Port",
+        "${workspaceFolder}/Autosar/mcal/Dio",
+        "${workspaceFolder}/Autosar/config"
+      ],
+      "defines": [
+        "STM32F10X_MD",
+        "USE_STDPERIPH_DRIVER",
+        "HSE_VALUE=8000000",
+        "RTE_DEVICE_STDPERIPH_RCC",
+        "RTE_DEVICE_STDPERIPH_GPIO"
+      ],
+      "compilerPath": "C:/Program Files (x86)/Arm GNU Toolchain arm-none-eabi/12.2 mpacbti-rel1/bin/arm-none-eabi-gcc.exe",
+      "compilerArgs": [
+        "-mcpu=cortex-m3",
+        "-mthumb"
+      ],
+      "cStandard": "gnu11",
+      "cppStandard": "gnu++14",
+      "intelliSenseMode": "gcc-arm"
+    }
+  ],
+  "version": 4
+}
